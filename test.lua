@@ -1,114 +1,83 @@
 
-local use51 = ...
+local _M = {}
 
-local table_replace
-if use51 then
-    table_replace = require "replace51"
-else
-    table_replace = require "replace53"
+local function table_size(t)
+    local size = 0
+    for _ in pairs(t) do
+        size = size + 1
+    end
+    return size
 end
 
-local function test1()
-    local t = {
+local function new_test_data()
+    return {
         1,2,3,
         a = "a",
         b = "b",
     }
+end
 
+function _M.base_test(table_replace)
+    local t = new_test_data()
     local r = table_replace(t)
-    table.insert(r, 4)
-    assert(#r == 4)
-    table.insert(r, 5)
-    assert(#r == 5)
 
-    -- 赋 nil
-    r[2] = nil
-    assert(r[2]==nil and #r==1)
-    r[1] = nil
-    assert(r[1]==nil and #r==0)
-    r[1] = 11
-    assert(r[1]==11 and #r==1)
-    r[2] = 22
-    assert(r[2]==22 and #r==5)
-
-    print("0000000000000000")
-
-    for k,v in pairs(t) do
-        print(k, v)
+    -- 替换表和原始表字段完全一样
+    assert(table_size(r) == table_size(t))
+    assert(#r == #t)
+    for k, v in pairs(t) do
+        assert(r[k] == v)
     end
 
-    print("1111111111111111")
-
-    for i=1,#t do
-        print(i, t[i])
-    end
-
-    print("======")
-    for k,v in ipairs(t) do
-        print(k,v)
-    end
-
-
-    print("2222222222222222")
-
+    -- 现有字段的替换
     r[1] = 11
     r.a = "aa"
+    assert(r[1] == 11 and r.a == "aa")
+    assert(table_size(r) == 5)
+    assert(#r == 3)
 
-    for k,v in pairs(r) do
-        print(k, v)
-    end
+    -- 新增 array 字段
+    r[4] = 4
+    r[5] = 5
+    assert(r[4] == 4 and r[5] == 5)
+    assert(table_size(r) == 7)
+    assert(#r == 5)
 
-    print("3333333333333333")
+    -- 新增 hash 字段
+    r.c = "c"
+    r.d = "d"
+    assert(r.c == "c" and r.d == "d")
+    assert(table_size(r) == 9)
+    assert(#r == 5)
 
-    for i=1,#r do
-        print(i, r[i])
-    end
-    print("======")
-
-    for k,v in ipairs(r) do
-        print(k,v)
-    end
+    -- table.insert
+    table.insert(r, 6)
+    assert(#r == 6)
+    --! 不支持 table.remove, 因为不支持原始表的数据删除, 只 remove 替换表的元素没问题, 但 remove 到原始表, 就会出错
 end
 
-local function test2()
-    local t = {
-        1,2,3,
-        a = "a",
-        b = "b",
-    }
+function _M.ext_test(table_replace)
+    local t = new_test_data()
+    local r = table_replace(t)
 
-    local r = table_replace( t)
+    r.a = nil
+    assert(r.a == nil)
+    assert(table_size(r) == 4)
     assert(#r == 3)
-    assert(r[1] == 1 and r[2] == 2 and r[3] == 3)
-    assert(r.a == "a" and r.b == "b")
 
     table.insert(r, 4)
-    assert(#r == 4 and r[4] == 4)
+    assert(r[4] == 4)
+    assert(table_size(r) == 5)
+    assert(#r == 4)
 
-    local function for_pairs(tt)
-        for k, v in pairs(tt) do
-            print(k, v)
-        end
-    end
+    assert(table.remove(r) == 4)
+    assert(r[4] == nil)
+    assert(table_size(r) == 4)
+    assert(#r == 3)
 
-    local function for_ipairs(tt)
-        for k, v in ipairs(tt) do
-            print(k, v)
-        end
-    end
-
-    local function for_i(tt)
-        for i = 1, #tt do
-            print(i, tt[i])
-        end
-    end
-
-    for_pairs(r)
-    print("==========")
-    for_ipairs(r)
-    print("==========")
-    for_i(r)
+    assert(table.remove(r, 1) == 1)
+    assert(r[1] == 2 and r[2] == 3 and r[3] == 4 and r[4] == nil)
+    assert(table_size(r) == 3)
+    assert(#r == 2)
 end
 
-test1()
-test2()
+return _M

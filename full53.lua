@@ -1,3 +1,4 @@
+--! 所有特性都支持, 行为和 table.copy 完全一致
 
 local function table_set(t, key, value)
     if not t and value then -- and value 是防止创建无意义的空表
@@ -26,7 +27,7 @@ local function table_replace(original_table)
     local nil_keys -- key ==> true, 记录对原始表字段赋 nil 的 keys
 
     local _switched -- 遍历时要遍历原始表和替换表, 这个变量标记是否转换了表
-    local function _next(replace_table, index)
+    local function _next(_, index)
         if not _switched then -- replace_table
             local k, v = next(replace_table, index)
             if k then

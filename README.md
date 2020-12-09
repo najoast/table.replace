@@ -54,26 +54,23 @@ t2 = {
 * 索引值
 * 赋值 (nil & 非 nil, 以及赋 nil 后 `#` 取长也都已支持)
 
-### 赋 nil 问题
-举例:
-```lua
-local t = { a = "a", b = "b" }
-local r = table_replace(t)
-r.a = nil
-assert(r.a == "a") -- 断言成立
-```
-为什么会这样呢, 因为我们不能改原始表, 赋 nil 就只能在替换表内做, 再次索引时, 对于替换表内找不到的, 因为 `__index` 指向了原始表, 所以还是会从原始表内找到.
-
-如果要支持这个特性, 可以定义一个空表, 约定值等于
-
 ***
 
 `Lua 5.1` 版由于不支持 `__pairs` 和 `__len` 元方法, 所以实现起来比较麻烦, 不但 pairs 要通过把数据存到元表里来才能实现, `#` 和 `table.insert` 更是无法实现.
 
 # 文件说明
-* `replace51.lua`, 5.1 版本的实现, 由于把数据存到元表里, 且改写了 pairs, 所以会降低系统的整体性能, 请谨慎使用. 如果真想用, 可以改写 Lua 代码, 让其支持 `__pairs` 即可.
-* `replace53.lua`, 5.3 版本的实现, 5.4 当然也可以用
-* `test.lua`, 测试文件
+* `lite53.lua`, 5.3 版本的简单实现, 不支持删除元素, 只能修改
+* `full53.lua`, 5.3 版本的完整实现, 支持所有特性, 使用起来和 table.copy 体验一样
+* `lite51.lua`, 5.1 版本的简单实现, 比 lite53 还要少个 # 功能, 因为 5.1 不支持 __len
+* `test_full53.lua`, full53.lua 测试用例
+* `test_lite53.lua`, lite53.lua 测试用例
+* `test.lua`, 所有测试代码都在这里, 上面两个具体测试只是调这里面的接口
+
+# 跑用例
+```base
+lua test_lite53.lua
+lua test_full53.lua
+```
 
 # TODO
-* 5.3 版简化实现, 剥离掉 nil / # / table.insert 的实现, 提供一个性能较好且足以应付大部分场景的版本
+test_full53.lua 未通过
