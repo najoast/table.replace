@@ -16,12 +16,20 @@ local function test1()
     }
 
     local r = table_replace(t)
-    -- r[4] = 4
-    -- table.insert(r, 4)
-    -- table.insert(r, 5)
+    table.insert(r, 4)
+    assert(#r == 4)
+    table.insert(r, 5)
+    assert(#r == 5)
 
-    print(#t, #r)
-
+    -- 赋 nil
+    r[2] = nil
+    assert(r[2]==nil and #r==1)
+    r[1] = nil
+    assert(r[1]==nil and #r==0)
+    r[1] = 11
+    assert(r[1]==11 and #r==1)
+    r[2] = 22
+    assert(r[2]==22 and #r==5)
 
     print("0000000000000000")
 

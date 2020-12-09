@@ -1,60 +1,106 @@
---[[
-# 名词
-原始表: 原始数据表
-替换表: 生成的替换表
 
+local function table_set(t, key, value)
+    if not t and value then -- and value 是防止创建无意义的空表
+        t = { [key] = value }
+    else
+        t[key] = value
+    end
+    return t
+end
 
-# 关于 table.insert 的模拟
-替换表内还是使用 hash 的, 在原始表的基础上往后加元素, 所以取长度是先 #原始表,
-再遍历替换表后面的元素.
-
-在替换表后面如果有大量元素, 这种方法将会有一些性能问题, 但因为只是简单的取元素
-判断是不是 nil, 所以开销还可以接受.
-
-]]
-local function table_replace(originalTable)
-    local ret = {}
-
-    local _isSwitched
-    local function _next(tbl, index)
-        if _isSwitched then
-            local k,v = next(originalTable, index)
-            if rawget(tbl, k) ~= nil then -- 原生表有了，跳过
-                return _next(tbl, k)
-            else
-                return k, v
-            end
+local function replace_table_len(original_table, replace_table)
+    local len = #original_table
+    while true do
+        local nextIndex = len + 1
+        if rawget(replace_table, nextIndex) == nil then
+            break
         else
-            local k,v = next(tbl, index)
-            if k ~= nil then
+            len = nextIndex
+        end
+    end
+    return len
+end
+
+local function table_replace(original_table)
+    local replace_table = {}
+    local nil_keys -- key ==> true, 记录对原始表字段赋 nil 的 keys
+
+    local _switched -- 遍历时要遍历原始表和替换表, 这个变量标记是否转换了表
+    local function _next(replace_table, index)
+        if not _switched then -- replace_table
+            local k, v = next(replace_table, index)
+            if k then
                 return k, v
             else
-                _isSwitched = true
-                return _next(tbl)
+                _switched = true
+                return _next(original_table)
+            end
+        else -- original_table
+            local k, v = next(original_table, index)
+            if rawget(replace_table, k) ~= nil  -- 替换表有了, 跳过
+            or (nil_keys and nil_keys[k])       -- 置 nil 了, 跳过
+            then
+                return _next(original_table, k)
+            else
+                return k, v
             end
         end
     end
 
-    return setmetatable(ret, {
-        __index = originalTable,
+    return setmetatable(replace_table, {
+        __index = function(_, key)
+            local v = original_table[key]
+            if v and (not (nil_keys and nil_keys[key])) then
+                return v
+            end
+        end,
         __newindex = function(self, key, value)
+            local original_has_value = original_table[key]
+            if original_has_value then
+                if value then
+                    nil_keys = table_set(nil_keys, key, nil) -- 还原
+                else
+                    nil_keys = table_set(nil_keys, key, true) -- 抹掉
+                end
+            end
             rawset(self, key, value)
         end,
         __pairs = function()
-            _isSwitched = false
-            return _next, ret, nil
+            _switched = false
+            return _next, replace_table, nil
         end,
         __len = function()
-            local len = #originalTable
-            while true do
-                local nextIndex = len + 1
-                if rawget(ret, nextIndex) == nil then
-                    break
-                else
-                    len = nextIndex
+            if not nil_keys then
+                return replace_table_len(original_table, replace_table)
+            else
+                local min
+                for key in pairs(nil_keys) do
+                    if type(key) == "number" then
+                        if not min or key < min then
+                            min = key
+                        end
+                    end
+                end
+                if not min then
+                    return replace_table_len(original_table, replace_table)
+                end
+                local len = #original_table
+                if min <= len then
+                    return min - 1
+                else -- min > len
+                    while true do
+                        local nextIndex = len + 1
+                        if nextIndex >= min
+                        or rawget(replace_table, nextIndex) == nil
+                        then
+                            break
+                        else
+                            len = nextIndex
+                        end
+                    end
+                    return len
                 end
             end
-            return len
         end,
     })
 end
