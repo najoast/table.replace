@@ -1,8 +1,10 @@
 --! 所有特性都支持, 行为和 table.copy 完全一致
 
 local function table_set(t, key, value)
-    if not t and value then -- and value 是防止创建无意义的空表
-        t = { [key] = value }
+    if not t then
+        if value then -- 防止创建无意义的空表
+            t = { [key] = value }
+        end
     else
         t[key] = value
     end

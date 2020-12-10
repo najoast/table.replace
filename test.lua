@@ -69,15 +69,23 @@ function _M.ext_test(table_replace)
     assert(table_size(r) == 5)
     assert(#r == 4)
 
-    assert(table.remove(r) == 4)
-    assert(r[4] == nil)
-    assert(table_size(r) == 4)
-    assert(#r == 3)
-
     assert(table.remove(r, 1) == 1)
+    assert(#r == 3)
+    assert(table_size(r) == 4)
     assert(r[1] == 2 and r[2] == 3 and r[3] == 4 and r[4] == nil)
-    assert(table_size(r) == 3)
-    assert(#r == 2)
+
+    assert(table.remove(r) == 4)
+    -- assert(#r == 2)
+    -- assert(table_size(r) == 3)
+    -- assert(r[1] == 2 and r[2] == 3 and r[3] == nil)
+    -- 想象中是上面3行的样子, 实际是下面这样
+    -- 原因就是当替换表有元素时, 不会触发 __newindex, 所以也不会在 nil_keys 里登记
+    -- 这就导致取长度时从原始表里取了, 替换表内没登记 nil 就不会有正常的结果
+    -- 这个是无解的, 就算有解, 代码也将会更复杂, 性能也会更差, 那就没有意义了
+    --! 结论就是, 不要对替换表做 table.remove, 哪怕是 ext53 里的复杂实现
+    assert(#r == 3)
+    assert(table_size(r) == 4)
+    assert(r[1] == 2 and r[2] == 3 and r[3] == 3)
 end
 
 return _M

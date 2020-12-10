@@ -59,11 +59,11 @@ t2 = {
 `Lua 5.1` 版由于不支持 `__pairs` 和 `__len` 元方法, 所以实现起来比较麻烦, 不但 pairs 要通过把数据存到元表里来才能实现, `#` 和 `table.insert` 更是无法实现.
 
 # 文件说明
-* `lite53.lua`, 5.3 版本的简单实现, 不支持删除元素, 只能修改
-* `full53.lua`, 5.3 版本的完整实现, 支持所有特性, 使用起来和 table.copy 体验一样
-* `lite51.lua`, 5.1 版本的简单实现, 比 lite53 还要少个 # 功能, 因为 5.1 不支持 __len
-* `test_full53.lua`, full53.lua 测试用例
-* `test_lite53.lua`, lite53.lua 测试用例
+* `base53.lua`, 5.3 版本的简单实现, 不支持删除元素, 只能修改
+* `ext53.lua`, 5.3 版本的复杂实现, 支持除`table.remove`外的所有特性
+* `base51.lua`, 5.1 版本的简单实现, 比 base53 还要少个 # 功能, 因为 5.1 不支持 __len
+* `test_ext53.lua`, ext53 测试用例
+* `test_base53.lua`, base53 测试用例
 * `test.lua`, 所有测试代码都在这里, 上面两个具体测试只是调这里面的接口
 
 # 跑用例
@@ -72,5 +72,6 @@ lua test_lite53.lua
 lua test_full53.lua
 ```
 
-# TODO
-test_full53.lua 未通过
+# 项目状态
+已经完结, 推荐大家使用 `base53.lua`, 能满足大部分需求, 实现简洁, 性能也比较好.  
+其他实现算是实验性质的, 不推荐使用.

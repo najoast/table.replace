@@ -1,4 +1,14 @@
---! 不支持 nil 赋值, 其他都支持
+--[[
+注意事项:
+
+1. 对于原始表中存在的项, 无法通过对替换表赋 nil 删除这个元素.
+   如果真想要这个特性, 请使用 full53.lua 里的实现, 该实现满足这个特性,
+   但代码复杂很多, 性能也要差一点, 所以如果没需求还是建议用这个版本.
+
+2. 可以对替换表做 table.insert, 但最好不要使用 table.remove 来删除元素,
+   会有各种问题.
+
+]]
 
 local function table_replace(original_table)
     local replace_table = {}
